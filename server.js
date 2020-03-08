@@ -8,7 +8,9 @@ app.use(express.json());
 app.use(cors());
 
 const courseRoutes = require("./controllers/courses.controller");
-app.use("/course", courseRoutes);
+const studentRoutes = require("./controllers/students.controller");
+app.use("/courses", courseRoutes);
+app.use("/students", studentRoutes);
 
 mongoAtlas.connectToAtlas();
 app.listen(port, () => {

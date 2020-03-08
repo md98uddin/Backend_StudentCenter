@@ -1,21 +1,32 @@
 const router = require("express").Router();
 const services = require("../utils/services");
 const Course = require("../models/courses.model");
+const Student = require("../models/students.model");
 
-//return all courses in db
-router.route("/").get((request, response) => {
-  Course.find()
-    .then(res => {
-      response.status(200).send(res);
-    })
-    .catch(error => {
-      response.status(404).send(error.message);
-    });
+//return all courses in db OR query by campus OR campus and department
+router.route("/").get(async (request, response) => {
+  const { campusId, prefix } = request.query;
+  var courses = await Course.find();
+
+  if (courses) {
+    if (campusId && prefix) {
+      for (let i = 0; i < courses.length; i++) {
+        if (courses[i].campusId !== campusId || courses[i].prefix === prefix)
+          courses = courses.splice(i, 1);
+      }
+
+      return response.status(200).send(courses);
+    } else if (campusId && !prefix) {
+      for (let i = 0; i < courses.length; i++) {
+        if (courses[i].campusId !== campusId) {
+          courses.splice(i, 1);
+        }
+      }
+      return response.status(200).send(courses);
+    }
+  }
+  return response.status(200).send(courses);
 });
-
-//return courses by campus
-
-//return courses by campus and department
 
 //add a course to db
 router.route("/add").post(async (request, response) => {
@@ -30,6 +41,7 @@ router.route("/add").post(async (request, response) => {
     grade,
     semester,
     campus,
+    campusId,
     section
   } = request.body;
 
@@ -40,26 +52,43 @@ router.route("/add").post(async (request, response) => {
   if (!error) {
     const courseExists = await Course.find({ prefix })
       .and({ courseNumber })
-      .and({ section });
+      .and({ section })
+      .and({ campusId });
     if (!courseExists.length > 0) {
       const course = new Course(request.body);
       course
         .save()
         .then(res => {
-          response
+          return response
             .status(200)
             .send(`the following object was created => ${res}`);
         })
         .catch(error => {
-          response.send(`something went wrong => ${error}`);
+          return response.send(`something went wrong => ${error}`);
         });
     } else {
-      response.status(400).send("this course with section number exists");
+      return response
+        .status(400)
+        .send("this course with section number exists");
     }
   } else {
-    response.status(400).send(`encountered errors in fields => ${error}`);
+    return response
+      .status(400)
+      .send(`encountered errors in fields => ${error}`);
   }
 });
+
+//add a course to student currentClasses array
+router.route("/add/:id").post(async (request, response) => {
+  const { id } = request.params;
+  const student = await Student.find({ email: id });
+  if (student) {
+    return response.status(200).send("found him");
+  }
+  return response.status(400).send("no one found");
+});
+
+//add a course to student completedClasses
 
 //modify a course in db
 
