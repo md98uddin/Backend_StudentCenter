@@ -9,8 +9,10 @@ app.use(cors());
 
 const courseRoutes = require("./controllers/courses.controller");
 const studentRoutes = require("./controllers/students.controller");
+const facultyRoutes = require("./controllers/faculty.controller");
 app.use("/courses", courseRoutes);
 app.use("/students", studentRoutes);
+app.use("/faculties", facultyRoutes);
 
 mongoAtlas.connectToAtlas();
 app.listen(port, () => {

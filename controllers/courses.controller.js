@@ -46,7 +46,7 @@ router.route("/add").post(async (request, response) => {
   } = request.body;
 
   //validation logic
-  const { error, value } = services.validateCourse(request.body);
+  const { error } = services.validateCourse(request.body);
 
   //save to mongo
   if (!error) {

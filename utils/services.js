@@ -95,12 +95,25 @@ function validateStudent(student) {
       .required()
       .max(48)
       .min(2),
+    studentId: Joi.string()
+      .required()
+      .max(64)
+      .min(8),
     gender: Joi.string()
       .required()
       .valid("Male", "Female", "Non-Binary"),
     year: Joi.string()
       .required()
       .valid("Freshmen", "Sophomore", "Junior", "Senior"),
+    major: Joi.string()
+      .valid(
+        "Math",
+        "Business",
+        "Computer Science",
+        "Romance Language",
+        "Undeclared"
+      )
+      .default("Undeclared"),
     gpa: Joi.number()
       .required()
       .max(4)
@@ -112,10 +125,7 @@ function validateStudent(student) {
     attending: Joi.string()
       .required()
       .valid("Fulltime", "Parttime", "No"),
-    adviser: Joi.array()
-      .required()
-      .min(0)
-      .max(3),
+    adviser: Joi.object().required(),
     holds: Joi.array()
       .required()
       .min(0)
@@ -138,7 +148,49 @@ function validateStudent(student) {
   return Schema.validate(student);
 }
 
+function validateFaculty(adviser) {
+  const Schema = Joi.object().keys({
+    department: Joi.string()
+      .required()
+      .valid("Math", "Comp Sci", "Romance Language", "Business"),
+    employeeType: Joi.string()
+      .required()
+      .valid("Professor", "Adviser"),
+    name: Joi.string()
+      .required()
+      .max(64)
+      .min(2),
+    room: Joi.string()
+      .required()
+      .max(64)
+      .min(2),
+    hours: Joi.string()
+      .required()
+      .max(64)
+      .min(2),
+    days: Joi.array()
+      .required()
+      .max(7)
+      .min(1),
+    facultyId: Joi.string()
+      .required()
+      .max(64)
+      .min(6),
+    campusId: Joi.number()
+      .required()
+      .max(9999)
+      .min(1000),
+    contact: Joi.object()
+      .required()
+      .max(3)
+      .min(1)
+  });
+
+  return Schema.validate(adviser);
+}
+
 module.exports = {
   validateCourse,
-  validateStudent
+  validateStudent,
+  validateFaculty
 };

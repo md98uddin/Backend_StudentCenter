@@ -28,6 +28,7 @@ const students = new Schema(
       maxlength: 48,
       required: true
     },
+    studentId: { type: String, required: true, maxlength: 64, minlength: 8 },
     gender: {
       type: String,
       enum: ["Male", "Female", "Non-Binary"],
@@ -36,6 +37,17 @@ const students = new Schema(
     year: {
       type: String,
       enum: ["Freshmen", "Sophomore", "Junior", "Senior"],
+      required: true
+    },
+    major: {
+      type: String,
+      enum: [
+        "Math",
+        "Business",
+        "Computer Science",
+        "Romance Language",
+        "Undeclared"
+      ],
       required: true
     },
     gpa: {
@@ -56,8 +68,8 @@ const students = new Schema(
       enum: ["Fulltime", "Parttime", "No"]
     },
     adviser: {
-      type: Array,
-      default: []
+      type: Object,
+      required: true
     },
     holds: {
       type: Array,
