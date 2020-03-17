@@ -49,6 +49,7 @@ function validateCourse(course) {
       "D+",
       "D",
       "D-",
+      "F",
       "WD",
       "W",
       "WU",
@@ -105,6 +106,11 @@ function validateStudent(student) {
     year: Joi.string()
       .required()
       .valid("Freshmen", "Sophomore", "Junior", "Senior"),
+    campusId: Joi.number()
+      .required()
+      .max(9999)
+      .min(1000)
+      .valid(1234, 2345, 3456, 4567),
     major: Joi.string()
       .valid(
         "Math",
@@ -122,6 +128,10 @@ function validateStudent(student) {
       .required()
       .max(200)
       .min(0),
+    tuition: Joi.number()
+      .max(300000)
+      .min(0)
+      .default(0),
     attending: Joi.string()
       .required()
       .valid("Fulltime", "Parttime", "No"),

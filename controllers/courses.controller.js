@@ -8,7 +8,7 @@ router.route("/").get(async (request, response) => {
   const { campusId, prefix } = request.query;
   var courses = await Course.find();
 
-  if (courses) {
+  if (courses.length > 0) {
     if (campusId && prefix) {
       for (let i = 0; i < courses.length; i++) {
         if (courses[i].campusId !== campusId || courses[i].prefix === prefix)
@@ -24,10 +24,12 @@ router.route("/").get(async (request, response) => {
       }
       return response.status(200).send(courses);
     }
+  } else {
+    return response.status(200).send("can't find any courses matching query");
   }
-  return response.status(200).send(courses);
 });
 
+/**TESTED AND WORKING */
 //add a course to db
 router.route("/add").post(async (request, response) => {
   const {
@@ -76,16 +78,6 @@ router.route("/add").post(async (request, response) => {
       .status(400)
       .send(`encountered errors in fields => ${error}`);
   }
-});
-
-//add a course to student currentClasses array
-router.route("/add/:id").post(async (request, response) => {
-  const { id } = request.params;
-  const student = await Student.find({ email: id });
-  if (student) {
-    return response.status(200).send("found him");
-  }
-  return response.status(400).send("no one found");
 });
 
 //add a course to student completedClasses

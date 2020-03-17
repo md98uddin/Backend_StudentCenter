@@ -55,6 +55,7 @@ const courses = new Schema(
         "D+",
         "D",
         "D-",
+        "F",
         "WD",
         "W",
         "WU",

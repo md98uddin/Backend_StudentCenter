@@ -39,6 +39,12 @@ const students = new Schema(
       enum: ["Freshmen", "Sophomore", "Junior", "Senior"],
       required: true
     },
+    campusId: {
+      type: Number,
+      required: true,
+      max: 9999,
+      min: 1000
+    },
     major: {
       type: String,
       enum: [
@@ -62,6 +68,7 @@ const students = new Schema(
       min: 0,
       required: true
     },
+    tuition: { type: Number, max: 300000, min: 0, default: 0 },
     attending: {
       type: String,
       required: true,

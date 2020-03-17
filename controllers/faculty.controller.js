@@ -1,37 +1,36 @@
 const router = require("express").Router();
 const services = require("../utils/services");
-const Course = require("../models/courses.model");
-const Student = require("../models/students.model");
 const Faculty = require("../models/faculty.model");
 
 //return all faculty in db OR by employeeType OR employeeType and department
 router.route("/").get(async (request, response) => {
   const { employeeType, department } = request.query;
-  const students = await Student.find();
-  if (students) {
+  const faculties = await Faculty.find();
+  if (faculties) {
     if (employeeType && department) {
-      for (let i = 0; i < students.length; i++) {
+      for (let i = 0; i < faculties.length; i++) {
         if (
-          students[i].employeeType !== employeeType ||
-          students[i].department === department
+          faculties[i].employeeType !== employeeType ||
+          faculties[i].department === department
         )
-          students = students.splice(i, 1);
+          faculties = faculties.splice(i, 1);
       }
 
-      return response.status(200).send(students);
+      return response.status(200).send(faculties);
     } else if (employeeType && !department) {
-      for (let i = 0; i < students.length; i++) {
-        if (students[i].employeeType !== employeeType) {
-          students.splice(i, 1);
+      for (let i = 0; i < faculties.length; i++) {
+        if (faculties[i].employeeType !== employeeType) {
+          faculties.splice(i, 1);
         }
       }
-      return response.status(200).send(students);
+      return response.status(200).send(faculties);
     }
   } else {
   }
   return response.status(400).send("no faculties found with such criterias");
 });
 
+/**TESTED AND WORKING */
 //add a faculty to db
 router.route("/add").post(async (request, response) => {
   const {
