@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const services = require("../utils/services");
-const Course = require("../models/students.model");
+const Course = require("../models/courses.model");
 const Student = require("../models/students.model");
 
 /**TESTED AND WORKING */
@@ -44,30 +44,9 @@ router.route("/:email").get(async (request, response) => {
 /**TESTED AND WORKING */
 //add a student to db
 router.route("/add").post(async (request, response) => {
-  const {
-    email,
-    firstName,
-    middleName,
-    lastName,
-    studentId,
-    gender,
-    year,
-    campusId,
-    gpa,
-    credits,
-    tuition,
-    attending,
-    adviser,
-    holds,
-    currentClasses,
-    classesComplete,
-    studentPic,
-    registrationCode
-  } = request.body;
-
   const { error } = services.validateStudent(request.body);
   if (!error) {
-    const studentExists = await Student.find({ email });
+    const studentExists = await Student.find({ email: request.body.email });
     if (studentExists.length > 0) {
       return response
         .status(200)
@@ -88,21 +67,69 @@ router.route("/add").post(async (request, response) => {
   }
 });
 
-//modify a student
-
-//add a course to student currentClasses array
-router.route("/add/:email").post(async (request, response) => {
+//modify a student (needs scaling and fix)
+router.route("/modify/:email").post(async (request, response) => {
+  const { error } = services.validateStudent(request.body);
   const { email } = request.params;
-  const student = await Student.find({ email: id });
-  if (student.length > 0) {
+  if (!error) {
+    Student.updateOne({ email }, request.body, () => {
+      console.log(request.body);
+      return response
+        .status(200)
+        .send(`user updated to following ${request.body.email}`);
+    }).catch(error => {
+      return response.status(400).send(error);
+    });
+  } else {
+    return response.status(400).send(error);
   }
-  return response.status(400).send("no one found");
 });
 
-//add grade to a currentClasses index and push to classesComplete
+/**TESTED AND WORKING */
+//add a course to student currentClasses/classesComplete array
+router.route("/add/:operator/:email").post(async (request, response) => {
+  const { email, operator } = request.params;
+  const { prefix, courseNumber, section, grade } = request.body;
+  if (!email || !operator) {
+    return response.status(400).send("email and operator can't be null");
+  } else {
+    var student = await Student.find({ email });
+    if (student.length > 0) {
+      if (operator === "current") {
+        await student[0].currentClasses.push(request.body);
+        Student.updateOne(
+          { email },
+          { currentClasses: student[0].currentClasses },
+          () => {
+            return response.status(400).send(student[0].currentClasses);
+          }
+        );
+      } else if (operator === "completed") {
+        if (!grade) {
+          return response.status(400).send(`grade can't be null`);
+        } else {
+          await student[0].classesCompleted.push(request.body);
+          Student.updateOne(
+            { email },
+            { classesCompleted: student[0].classesCompleted },
+            () => {
+              return response.status(400).send(student[0].classesCompleted);
+            }
+          );
+        }
+      } else {
+        return response.status(400).send("invalid operator");
+      }
+    } else {
+      return response.status(400).send("no student found");
+    }
+  }
+});
+
+//drop or swap a course
 
 /**TESTED AND WORKING */
-//add or subtract tuition cost of adding/dropping a class
+//add or subtract tuition cost of adding/dropping a class or making a payment
 router.route("/finance/:operator/:email").post(async (request, response) => {
   const { amount, credits } = request.query;
   const { email, operator } = request.params;
@@ -120,7 +147,7 @@ router.route("/finance/:operator/:email").post(async (request, response) => {
           () => {
             return response
               .status(200)
-              .send(`added $${plusMinusCost} to tuition`);
+              .send(student[0].tuition + plusMinusCost);
           }
         );
       } else if (operator === "subtract") {
@@ -130,7 +157,7 @@ router.route("/finance/:operator/:email").post(async (request, response) => {
           () => {
             return response
               .status(200)
-              .send(`subtracted $${plusMinusCost} from tuition`);
+              .send(student[0].tuition - plusMinusCost);
           }
         );
       } else if (operator === "pay") {
@@ -138,9 +165,7 @@ router.route("/finance/:operator/:email").post(async (request, response) => {
           { email },
           { tuition: student[0].tuition - amount },
           () => {
-            return response
-              .status(200)
-              .send(`subtracted $${amount} from tuition`);
+            return response.status(200).send(student[0].tuition - amount);
           }
         );
       } else {
