@@ -32,20 +32,7 @@ router.route("/").get(async (request, response) => {
 /**TESTED AND WORKING */
 //add a course to db
 router.route("/add").post(async (request, response) => {
-  const {
-    department,
-    prefix,
-    courseNumber,
-    professor,
-    room,
-    days,
-    credits,
-    grade,
-    semester,
-    campus,
-    campusId,
-    section
-  } = request.body;
+  const { prefix, courseNumber, campusId, section } = request.body;
 
   //validation logic
   const { error } = services.validateCourse(request.body);

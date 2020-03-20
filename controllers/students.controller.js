@@ -67,7 +67,8 @@ router.route("/add").post(async (request, response) => {
   }
 });
 
-//modify a student (needs scaling and fix)
+/**TESTED AND WORKING */
+//modify a student (fname, lname, gender, email)
 router.route("/modify/:email").post(async (request, response) => {
   const { error } = services.validateStudent(request.body);
   const { email } = request.params;
@@ -126,7 +127,42 @@ router.route("/add/:operator/:email").post(async (request, response) => {
   }
 });
 
-//drop or swap a course
+/**TESTED AND WORKING */
+//remove a course
+router.route("/remove/:email").post(async (request, response) => {
+  const { email } = request.params;
+  const { prefix, courseNumber, section, _id } = request.body;
+  if (email) {
+    if (!prefix || !courseNumber || !section) {
+      return response
+        .status(400)
+        .send("prefix/courseNumber/section can't be null");
+    } else {
+      const student = await Student.find({ email });
+      if (student.length > 0) {
+        var course = await Course.find({
+          _id: _id
+        });
+        if (!course.length > 0) {
+          return response
+            .status(400)
+            .send("no such course found matching prefix/cn/section");
+        } else {
+          var filtered = student[0].currentClasses.filter(function(value) {
+            return value._id !== _id;
+          });
+          Student.updateOne({ email }, { currentClasses: filtered }, () => [
+            console.log("filtered", filtered)
+          ]);
+        }
+      } else {
+        return response.status(400).send("no student found");
+      }
+    }
+  } else {
+    return response.status(400).send("email can't be null");
+  }
+});
 
 /**TESTED AND WORKING */
 //add or subtract tuition cost of adding/dropping a class or making a payment
