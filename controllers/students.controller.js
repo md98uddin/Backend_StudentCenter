@@ -37,7 +37,18 @@ router.route("/:email").get(async (request, response) => {
   if (student.length > 0) {
     return response.status(200).send(student);
   } else {
-    return response.status(400).send("no student matches such email");
+    return response.send("no student matches such email");
+  }
+});
+
+//register use with code
+router.route("/add/:registrationCode").post(async (request, response) => {
+  const { registrationCode } = request.params;
+  const foundStudent = await Student.find({ registrationCode });
+  if (foundStudent.length > 0) {
+    return response.send("code matches");
+  } else {
+    return response.send("no code matches");
   }
 });
 
@@ -45,30 +56,38 @@ router.route("/:email").get(async (request, response) => {
 //add a student to db
 router.route("/add").post(async (request, response) => {
   const { error } = services.validateStudent(request.body);
-  if (!error) {
-    const studentExists = await Student.find({ email: request.body.email });
-    if (studentExists.length > 0) {
-      return response
-        .status(200)
-        .send("student with email/code already exists");
+  //check registration duplicate
+  const regDuplicate = await Student.find({
+    registrationCode: request.body.registrationCode
+  });
+  if (regDuplicate.length <= 0) {
+    if (!error) {
+      const studentExists = await Student.find({ email: request.body.email });
+      if (studentExists.length > 0) {
+        return response.status(200).send("student with email already exists");
+      } else {
+        const student = new Student(request.body);
+        student
+          .save()
+          .then(res => {
+            return response.status(200).send(res);
+          })
+          .catch(error => {
+            return response.status(400).send(error);
+          });
+      }
     } else {
-      const student = new Student(request.body);
-      student
-        .save()
-        .then(res => {
-          return response.status(200).send(res);
-        })
-        .catch(error => {
-          return response.status(400).send(error);
-        });
+      return response.status(400).send(error);
     }
   } else {
-    return response.status(400).send(error);
+    return response
+      .status(400)
+      .send("duplicate registrationCode. one exists in DB");
   }
 });
 
 /**TESTED AND WORKING */
-//modify a student (fname, lname, gender, email)
+//modify a student (fname, lname, gender, address)
 router.route("/modify/:email").post(async (request, response) => {
   const { error } = services.validateStudent(request.body);
   const { email } = request.params;

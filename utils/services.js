@@ -140,12 +140,13 @@ function validateStudent(student) {
       .required()
       .min(0)
       .max(10),
+    shopCart: Joi.array()
+      .min(0)
+      .max(8),
     currentClasses: Joi.array()
-      .required()
       .min(0)
       .max(8),
     classesCompleted: Joi.array()
-      .required()
       .min(0)
       .max(100),
     studentPic: Joi.string(),

@@ -3,29 +3,29 @@ const services = require("../utils/services");
 const Course = require("../models/courses.model");
 const Student = require("../models/students.model");
 
-//return all courses in db OR query by campus OR campus and department
+/**TESTED AND WORKING */
+//return all courses in db OR query by campus OR campus and prefix
 router.route("/").get(async (request, response) => {
-  const { campusId, prefix } = request.query;
-  var courses = await Course.find();
-
-  if (courses.length > 0) {
-    if (campusId && prefix) {
-      for (let i = 0; i < courses.length; i++) {
-        if (courses[i].campusId !== campusId || courses[i].prefix === prefix)
-          courses = courses.splice(i, 1);
+  const { prefix, campusId } = request.query;
+  if (campusId) {
+    var courses = await Course.find({ campusId });
+    if (courses.length > 0) {
+      if (campusId && !prefix) {
+        const courseById = courses.filter(course => {
+          return course.campusId !== campusId;
+        });
+        return response.send(courseById);
+      } else if (prefix) {
+        const courseByIdPrfx = courses.filter(course => {
+          return course.prefix === prefix;
+        });
+        return response.send(courseByIdPrfx);
       }
-
-      return response.status(200).send(courses);
-    } else if (campusId && !prefix) {
-      for (let i = 0; i < courses.length; i++) {
-        if (courses[i].campusId !== campusId) {
-          courses.splice(i, 1);
-        }
-      }
-      return response.status(200).send(courses);
+    } else {
+      return response.send("no courses match");
     }
   } else {
-    return response.status(200).send("can't find any courses matching query");
+    return response.send("no campusId selected");
   }
 });
 
@@ -48,26 +48,18 @@ router.route("/add").post(async (request, response) => {
       course
         .save()
         .then(res => {
-          return response
-            .status(200)
-            .send(`the following object was created => ${res}`);
+          return response.send(`the following object was created => ${res}`);
         })
         .catch(error => {
           return response.send(`something went wrong => ${error}`);
         });
     } else {
-      return response
-        .status(400)
-        .send("this course with section number exists");
+      return response.send("this course with section number exists");
     }
   } else {
-    return response
-      .status(400)
-      .send(`encountered errors in fields => ${error}`);
+    return response.send(`encountered errors in fields => ${error}`);
   }
 });
-
-//add a course to student completedClasses
 
 //modify a course in db
 
