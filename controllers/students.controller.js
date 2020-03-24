@@ -15,18 +15,18 @@ router.route("/").get(async (request, response) => {
           students = students.splice(i, 1);
       }
 
-      return response.status(200).send(students);
+      return response.send(students);
     } else if (campusId && !year) {
       for (let i = 0; i < students.length; i++) {
         if (students[i].campusId !== campusId) {
           students.splice(i, 1);
         }
       }
-      return response.status(200).send(students);
+      return response.send(students);
     }
   } else {
   }
-  return response.status(400).send("no students found with such criterias");
+  return response.send("no students found with such criterias");
 });
 
 /**TESTED AND WORKING */
@@ -35,7 +35,7 @@ router.route("/:email").get(async (request, response) => {
   const { email } = request.params;
   const student = await Student.find({ email });
   if (student.length > 0) {
-    return response.status(200).send(student);
+    return response.send(student);
   } else {
     return response.send("no student matches such email");
   }
@@ -64,25 +64,23 @@ router.route("/add").post(async (request, response) => {
     if (!error) {
       const studentExists = await Student.find({ email: request.body.email });
       if (studentExists.length > 0) {
-        return response.status(200).send("student with email already exists");
+        return response.send("student with email already exists");
       } else {
         const student = new Student(request.body);
         student
           .save()
           .then(res => {
-            return response.status(200).send(res);
+            return response.send(res);
           })
           .catch(error => {
-            return response.status(400).send(error);
+            return response.send(error);
           });
       }
     } else {
-      return response.status(400).send(error);
+      return response.send(error);
     }
   } else {
-    return response
-      .status(400)
-      .send("duplicate registrationCode. one exists in DB");
+    return response.send("duplicate registrationCode. one exists in DB");
   }
 });
 
@@ -94,14 +92,12 @@ router.route("/modify/:email").post(async (request, response) => {
   if (!error) {
     Student.updateOne({ email }, request.body, () => {
       console.log(request.body);
-      return response
-        .status(200)
-        .send(`user updated to following ${request.body.email}`);
+      return response.send(`user updated to following ${request.body.email}`);
     }).catch(error => {
-      return response.status(400).send(error);
+      return response.send(error);
     });
   } else {
-    return response.status(400).send(error);
+    return response.send(error);
   }
 });
 
@@ -111,7 +107,7 @@ router.route("/add/:operator/:email").post(async (request, response) => {
   const { email, operator } = request.params;
   const { prefix, courseNumber, section, grade } = request.body;
   if (!email || !operator) {
-    return response.status(400).send("email and operator can't be null");
+    return response.send("email and operator can't be null");
   } else {
     var student = await Student.find({ email });
     if (student.length > 0) {
@@ -121,27 +117,27 @@ router.route("/add/:operator/:email").post(async (request, response) => {
           { email },
           { currentClasses: student[0].currentClasses },
           () => {
-            return response.status(400).send(student[0].currentClasses);
+            return response.send(student[0].currentClasses);
           }
         );
       } else if (operator === "completed") {
         if (!grade) {
-          return response.status(400).send(`grade can't be null`);
+          return response.send(`grade can't be null`);
         } else {
           await student[0].classesCompleted.push(request.body);
           Student.updateOne(
             { email },
             { classesCompleted: student[0].classesCompleted },
             () => {
-              return response.status(400).send(student[0].classesCompleted);
+              return response.send(student[0].classesCompleted);
             }
           );
         }
       } else {
-        return response.status(400).send("invalid operator");
+        return response.send("invalid operator");
       }
     } else {
-      return response.status(400).send("no student found");
+      return response.send("no student found");
     }
   }
 });
@@ -153,9 +149,7 @@ router.route("/remove/:email").post(async (request, response) => {
   const { prefix, courseNumber, section, _id } = request.body;
   if (email) {
     if (!prefix || !courseNumber || !section) {
-      return response
-        .status(400)
-        .send("prefix/courseNumber/section can't be null");
+      return response.send("prefix/courseNumber/section can't be null");
     } else {
       const student = await Student.find({ email });
       if (student.length > 0) {
@@ -163,9 +157,9 @@ router.route("/remove/:email").post(async (request, response) => {
           _id: _id
         });
         if (!course.length > 0) {
-          return response
-            .status(400)
-            .send("no such course found matching prefix/cn/section");
+          return response.send(
+            "no such course found matching prefix/cn/section"
+          );
         } else {
           var filtered = student[0].currentClasses.filter(function(value) {
             return value._id !== _id;
@@ -175,11 +169,11 @@ router.route("/remove/:email").post(async (request, response) => {
           ]);
         }
       } else {
-        return response.status(400).send("no student found");
+        return response.send("no student found");
       }
     }
   } else {
-    return response.status(400).send("email can't be null");
+    return response.send("email can't be null");
   }
 });
 
@@ -190,7 +184,7 @@ router.route("/finance/:operator/:email").post(async (request, response) => {
   const { email, operator } = request.params;
 
   if (!operator || !email || !credits) {
-    return response.status(400).send("operator/email/credits can't be null");
+    return response.send("operator/email/credits can't be null");
   } else {
     var plusMinusCost = credits * 175;
     var student = await Student.find({ email });
@@ -200,9 +194,7 @@ router.route("/finance/:operator/:email").post(async (request, response) => {
           { email },
           { tuition: student[0].tuition + plusMinusCost },
           () => {
-            return response
-              .status(200)
-              .send(student[0].tuition + plusMinusCost);
+            return response.send(student[0].tuition + plusMinusCost);
           }
         );
       } else if (operator === "subtract") {
@@ -210,24 +202,23 @@ router.route("/finance/:operator/:email").post(async (request, response) => {
           { email },
           { tuition: student[0].tuition - plusMinusCost },
           () => {
-            return response
-              .status(200)
-              .send(student[0].tuition - plusMinusCost);
+            return response.send(student[0].tuition - plusMinusCost);
           }
         );
       } else if (operator === "pay") {
+        var newAmt = student[0].tuition - amount;
         Student.updateOne(
           { email },
           { tuition: student[0].tuition - amount },
           () => {
-            return response.status(200).send(student[0].tuition - amount);
+            return response.sendStatus(200);
           }
         );
       } else {
-        return response.status(400).send("invalid operator");
+        return response.send("invalid operator");
       }
     } else {
-      return response.status(400).send("no student found with such email");
+      return response.send("no student found with such email");
     }
   }
 });
