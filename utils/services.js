@@ -143,6 +143,9 @@ function validateStudent(student) {
     shopCart: Joi.array()
       .min(0)
       .max(8),
+    transactions: Joi.array()
+      .min(0)
+      .max(8),
     currentClasses: Joi.array()
       .min(0)
       .max(8),
@@ -183,6 +186,7 @@ function validateFaculty(adviser) {
       .required()
       .max(7)
       .min(1),
+    duration: Joi.object().required(),
     facultyId: Joi.string()
       .required()
       .max(64)

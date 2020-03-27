@@ -83,6 +83,7 @@ const students = new Schema(
       default: []
     },
     shopCart: { type: Array, default: [] },
+    transactions: { type: Array, default: [] },
     currentClasses: {
       type: Array,
       default: []

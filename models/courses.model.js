@@ -29,6 +29,7 @@ const courses = new Schema(
       minlength: 2
     },
     room: { type: String, required: true, maxlength: 10, minlength: 2 },
+    duration: { type: Object, required: true },
     days: {
       type: Array,
       required: true

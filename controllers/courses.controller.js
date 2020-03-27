@@ -6,7 +6,7 @@ const Student = require("../models/students.model");
 /**TESTED AND WORKING */
 //return all courses in db OR query by campus OR campus and prefix
 router.route("/").get(async (request, response) => {
-  const { prefix, campusId } = request.query;
+  const { prefix, campusId, courseNumber } = request.query;
   if (campusId) {
     var courses = await Course.find({ campusId });
     if (courses.length > 0) {
@@ -21,6 +21,11 @@ router.route("/").get(async (request, response) => {
         });
         return response.send(courseByIdPrfx);
       }
+    } else if (prefix && courseNumber) {
+      const courseByPrfxNum = courses.filter(course => {
+        return course.prefix === prefix && course.courseNumber === courseNumber;
+      });
+      return response.send(courseByPrfxNum);
     } else {
       return response.send("no courses match");
     }

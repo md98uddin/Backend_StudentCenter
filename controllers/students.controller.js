@@ -41,8 +41,9 @@ router.route("/:email").get(async (request, response) => {
   }
 });
 
+/**TESTED AND WORKING */
 //register use with code
-router.route("/add/:registrationCode").post(async (request, response) => {
+router.route("/add/:registrationCode").get(async (request, response) => {
   const { registrationCode } = request.params;
   const foundStudent = await Student.find({ registrationCode });
   if (foundStudent.length > 0) {
@@ -61,6 +62,7 @@ router.route("/add").post(async (request, response) => {
     registrationCode: request.body.registrationCode
   });
   if (regDuplicate.length <= 0) {
+    request.body.email = await request.body.email.toLowerCase();
     if (!error) {
       const studentExists = await Student.find({ email: request.body.email });
       if (studentExists.length > 0) {
