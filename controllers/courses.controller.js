@@ -15,17 +15,15 @@ router.route("/").get(async (request, response) => {
           return course.campusId !== campusId;
         });
         return response.send(courseById);
-      } else if (prefix) {
+      } else if (prefix && !courseNumber) {
         const courseByIdPrfx = courses.filter(course => {
           return course.prefix === prefix;
         });
         return response.send(courseByIdPrfx);
+      } else if (prefix && courseNumber) {
+        const filtered = await Course.find({ prefix, courseNumber });
+        return response.send(filtered);
       }
-    } else if (prefix && courseNumber) {
-      const courseByPrfxNum = courses.filter(course => {
-        return course.prefix === prefix && course.courseNumber === courseNumber;
-      });
-      return response.send(courseByPrfxNum);
     } else {
       return response.send("no courses match");
     }

@@ -104,10 +104,73 @@ router.route("/modify/:email").post(async (request, response) => {
 });
 
 /**TESTED AND WORKING */
+//get cart from user
+router.route("/cart/:email").get(async (request, response) => {
+  const { email } = request.params;
+  if (!email) {
+    return response.send("no email provided");
+  } else {
+    var student = await Student.find({ email });
+    if (student.length <= 0) {
+      return response.send("no student found");
+    } else {
+      return response.send(student[0].shopCart);
+    }
+  }
+});
+
+/**TESTED AND WORKING */
+//add to cart
+router.route("/cart/:email").post(async (request, response) => {
+  const { email } = request.params;
+  if (!email) {
+    return response.send("no email provided");
+  } else {
+    var student = await Student.find({ email });
+    if (student.length <= 0) {
+      return response.send("no student found");
+    } else {
+      await student[0].shopCart.push(request.body);
+      Student.updateOne({ email }, { shopCart: student[0].shopCart }, () => {
+        return response.send("added to shopCart");
+      });
+    }
+  }
+});
+
+//remove from cart
+router.route("/cart/:email").put(async (request, response) => {
+  const { email } = request.params;
+  const { id } = request.query;
+  if (!email) {
+    return response.send("no email provided");
+  } else {
+    if (!id) {
+      return response.send("no course id provided");
+    } else {
+      var student = await Student.find({ email });
+      if (student.length <= 0) {
+        return response.send("no students matches email");
+      } else {
+        var filtered = [];
+        for (let i = 0; i < student[0].shopCart.length; i++) {
+          if ((await student[0].shopCart[i]._id) !== id) {
+            filtered.push(student[0].shopCart[i]);
+          }
+        }
+        Student.updateOne({ email }, { shopCart: filtered }, () => {
+          response.send("course removed");
+        });
+      }
+    }
+  }
+});
+
+/**TESTED AND WORKING */
 //add a course to student currentClasses/classesComplete array
 router.route("/add/:operator/:email").post(async (request, response) => {
   const { email, operator } = request.params;
-  const { prefix, courseNumber, section, grade } = request.body;
+  const { grade } = request.body;
   if (!email || !operator) {
     return response.send("email and operator can't be null");
   } else {
@@ -140,6 +203,61 @@ router.route("/add/:operator/:email").post(async (request, response) => {
       }
     } else {
       return response.send("no student found");
+    }
+  }
+});
+
+/**TESTED AND WORKING */
+//return current classes or one by id
+router.route("/current/:email").get(async (request, response) => {
+  const { email } = request.params;
+  const { id } = request.query;
+  if (!email) {
+    return response.send("no email provided");
+  } else {
+    const student = await Student.find({ email });
+    if (student.length <= 0) {
+      return response.send("no student found");
+    } else {
+      if (id) {
+        if (student[0].currentClasses.length <= 0) {
+          return response.send("no course match id");
+        } else if (student[0].currentClasses.length > 0) {
+          for (let i = 0; i < student[0].currentClasses.length; i++) {
+            if (student[0].currentClasses[i]._id === id) {
+              return response.send("course exists");
+            } else if (i === student[0].currentClasses.length - 1) {
+              return response.send("none matched");
+            }
+          }
+        }
+      } else {
+        return response.send(student[0].currentClasses);
+      }
+    }
+  }
+});
+
+/**TESTED AND WORKING */
+//add to currentClasses
+router.route("/current/:email").post(async (request, response) => {
+  const { email } = request.params;
+  if (!email) {
+    return response.send("no email provided");
+  } else {
+    const student = await Student.find({ email });
+    if (student.length > 0) {
+      await student[0].currentClasses.push(request.body);
+      console.log("after update", student[0].currentClasses);
+      Student.updateOne(
+        { email },
+        { currentClasses: student[0].currentClasses },
+        () => {
+          return response.send("added course to currentClasses");
+        }
+      );
+    } else {
+      return response.send("no student found with email");
     }
   }
 });
@@ -221,6 +339,23 @@ router.route("/finance/:operator/:email").post(async (request, response) => {
       }
     } else {
       return response.send("no student found with such email");
+    }
+  }
+});
+
+router.route("/finance/transactions/:email").put(async (request, response) => {
+  const { email } = request.params;
+  if (!email) {
+    return response.send("no email provided");
+  } else {
+    var student = await Student.find({ email });
+    if (student.length <= 0) {
+      return response.send("no students match email");
+    } else {
+      await student[0].transactions.push(request.body);
+      Student.find({ email }, { transactions: student[0].transactions }, () => {
+        return response.send("transaction added");
+      });
     }
   }
 });
